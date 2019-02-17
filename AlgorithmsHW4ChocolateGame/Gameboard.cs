@@ -10,33 +10,27 @@ namespace AlgorithmsHW4ChocolateGame
     {
         // The gameboard is all true, except for a single false (the spoiled square)
         private bool[,] gameboard;
+        private int spoiledRow;
+        private int spoiledCol;
 
         // Inits the gameboard with an m x n chocolate bar
-        public Gameboard(int m, int n)
+        public Gameboard(int rows, int cols)
         {
-            gameboard = new bool[m, n];
+            gameboard = new bool[rows, cols];
             
             // Fill gameboard with all true
-            for (int row = 0; row < m; row++)
+            for (int row = 0; row < rows; row++)
             {
-                for (int col = 0; col < n; col++)
+                for (int col = 0; col < cols; col++)
                     gameboard[row, col] = true;
             }
 
             // Put spoiled square in somewhere
             Random rand = new Random();
-            int i = rand.Next(0, m);
-            int j = rand.Next(0, n);
-            gameboard[i, j] = false;
+            spoiledRow = rand.Next(0, rows);
+            spoiledCol = rand.Next(0, cols);
+            gameboard[spoiledRow, spoiledCol] = false;
         }
-
-        public int getColumnCount() { return gameboard.GetLength(0); }
-        public int getRowCount() { return gameboard.GetLength(1); }
-
-        public void TrimRight() { TrimColumn(gameboard.GetLength(1) - 1); }
-        public void TrimLeft() { TrimColumn(0); }
-        public void TrimTop() { TrimRow(0); }
-        public void TrimBottom() { TrimRow(gameboard.GetLength(0) - 1); }
 
         public void printBoard()
         {
@@ -54,10 +48,76 @@ namespace AlgorithmsHW4ChocolateGame
                 }
                 Console.WriteLine();
             }
-            Console.WriteLine();
         }
 
+        #region Information Functions
+    
+        public int getColumnCount() { return gameboard.GetLength(0); }
+        public int getRowCount() { return gameboard.GetLength(1); }
+
+        public bool isGameOver()
+        {
+            // The game is over and the player loses if:
+            //  1) They are dumb and break off a piece that has the spoiled square
+            //  2) There is just the spoiled piece remaining
+
+            // Check #1
+            bool foundSpoiledSquare = false;
+            for(int row = 0; row < getRowCount(); row++)
+            {
+                for (int col = 0; col < getColumnCount(); col++)
+                {
+                    if (gameboard[col, row] == false)
+                        foundSpoiledSquare = true;
+                }
+            }
+
+            if (!foundSpoiledSquare)
+                return true;
+
+            // Check #2
+            if (getRowCount() + getColumnCount() == 2)
+            {
+                // Double check myself. There shouldn't be 1 square left here but it isn't spoiled
+                if (gameboard[0, 0] == true)
+                    throw new Exception("There is only 1 square left, and it isn't spoiled! That shouldn't happen...");
+
+                return true;
+            }
+
+            return false;
+        }
+
+        public bool rowContainsSpoiled(int row)
+        {
+            bool contains = false;
+            for(int col = 0; col < getColumnCount(); col++)
+            {
+                if (gameboard[col, row] == false)
+                    contains = true;
+            }
+
+            return contains;
+        }
+
+        public bool colContainsSpoiled(int col)
+        {
+            bool contains = false;
+            for (int row = 0; row < getRowCount(); row++)
+            {
+                if (gameboard[col, row] == false)
+                    contains = true;
+            }
+
+            return contains;
+        }
+        #endregion
+
         #region Modifying Functions
+        public void TrimRight() { TrimColumn(gameboard.GetLength(1) - 1); }
+        public void TrimLeft() { TrimColumn(0); }
+        public void TrimTop() { TrimRow(0); }
+        public void TrimBottom() { TrimRow(gameboard.GetLength(0) - 1); }
 
         private void TrimRow(int rowToRemove)
         {
